@@ -2,6 +2,10 @@
 #include <stdbool.h>
 #include <string.h>
 #include <oqs/oqs.h>
+
+#include "oqs_dilithium_test.h"
+#include "oqs_kyber_test.h"
+
 // 상태 정의
 typedef enum {
     POWER_ON,
@@ -11,9 +15,10 @@ typedef enum {
     OPERATIONAL_MODE,
     ERROR_STATE
 } State;
+
 #define MESSAGE_LEN 50
 
-void cleanup_stack(uint8_t *secret_key, size_t secret_key_len);
+
 
 
 // 현재 상태를 저장하는 변수
@@ -110,51 +115,13 @@ State ISC_operation() {
     }
 
     if (operation_success){   
-        #ifdef OQS_ENABLE_SIG_dilithium_2
-
-        OQS_STATUS rc;
-
-        uint8_t public_key[OQS_SIG_dilithium_2_length_public_key];
-        uint8_t secret_key[OQS_SIG_dilithium_2_length_secret_key];
-        uint8_t message[MESSAGE_LEN];
-        uint8_t signature[OQS_SIG_dilithium_2_length_signature];
-        size_t message_len = MESSAGE_LEN;
-        size_t signature_len;
-
-        // let's create a random test message to sign
-        OQS_randombytes(message, message_len);
-
-        rc = OQS_SIG_dilithium_2_keypair(public_key, secret_key);
-        if (rc != OQS_SUCCESS) {
-            fprintf(stderr, "ERROR: OQS_SIG_dilithium_2_keypair failed!\n");
-            cleanup_stack(secret_key, OQS_SIG_dilithium_2_length_secret_key);
-            return OQS_ERROR;
+        if (OQS_Kyber_768_test() == OQS_SUCCESS){
+            printf("Kyber test succeeded.\n");
+        } else {
+            printf("Kyber test failed.\n");
         }
-        rc = OQS_SIG_dilithium_2_sign(signature, &signature_len, message, message_len, secret_key);
-        if (rc != OQS_SUCCESS) {
-            fprintf(stderr, "ERROR: OQS_SIG_dilithium_2_sign failed!\n");
-            cleanup_stack(secret_key, OQS_SIG_dilithium_2_length_secret_key);
-            return OQS_ERROR;
-        }
-        rc = OQS_SIG_dilithium_2_verify(message, message_len, signature, signature_len, public_key);
-        if (rc != OQS_SUCCESS) {
-            fprintf(stderr, "ERROR: OQS_SIG_dilithium_2_verify failed!\n");
-            cleanup_stack(secret_key, OQS_SIG_dilithium_2_length_secret_key);
-            return OQS_ERROR;
-        }
-
-        printf("[example_stack] OQS_SIG_dilithium_2 operations completed.\n");
-        cleanup_stack(secret_key, OQS_SIG_dilithium_2_length_secret_key);
-        return OQS_SUCCESS; // success!
-
-        #else
-
-        printf("[example_stack] OQS_SIG_dilithium_2 was not enabled at compile-time.\n");
-        return OQS_SUCCESS;
-
-        #endif
-    }
-    else {
+        return OPERATIONAL_MODE;
+    } else {
         printf("Operation failed.\n");
         return current_state = ERROR_STATE;
     }
@@ -214,7 +181,3 @@ int main() {
     return 0;
 }
 
-
-void cleanup_stack(uint8_t *secret_key, size_t secret_key_len) {
-    OQS_MEM_cleanse(secret_key, secret_key_len);
-}
