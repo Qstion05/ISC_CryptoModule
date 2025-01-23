@@ -5,7 +5,6 @@
 
 #include "oqs_dilithium_test.h"
 #include "oqs_kyber_test.h"
-
 // 상태 정의
 typedef enum {
     POWER_ON,
@@ -15,7 +14,6 @@ typedef enum {
     OPERATIONAL_MODE,
     ERROR_STATE
 } State;
-
 #define MESSAGE_LEN 50
 
 
