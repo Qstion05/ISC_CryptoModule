@@ -7,12 +7,12 @@
 #include "oqs_kyber_test.h"
 // 상태 정의
 typedef enum {
-    POWER_ON,
-    INITIALIZATION,
-    INTEGRITY_CHECK,
-    SELF_TEST,
-    OPERATIONAL_MODE,
-    ERROR_STATE
+    POWER_ON,            // 전원 켜짐
+    INITIALIZATION,      // 초기화
+    INTEGRITY_CHECK,     // 무결성 검사
+    SELF_TEST,           // 자가시험
+    OPERATIONAL_MODE,    // 동작모드(정상동작 상태)
+    ERROR_STATE          // 에러 발생
 } State;
 #define MESSAGE_LEN 50
 
