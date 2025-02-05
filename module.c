@@ -2,9 +2,13 @@
 #include <stdbool.h>
 #include <string.h>
 #include <oqs/oqs.h>
+#include "tests/oqs_dilithium_test.h"
+#include "tests/oqs_kyber_test.h"
+#include "tests/oqs_sha3_test.h"
+#include "include/IntegrityCheck.h"
+#include "include/SelfTest.h"
 
-#include "oqs_dilithium_test.h"
-#include "oqs_kyber_test.h"
+
 // 상태 정의
 typedef enum {
     POWER_ON,            // 전원 켜짐
@@ -56,17 +60,18 @@ State ISC_Initialization() {
 State ISC_Integrity() {
     printf("State: INTEGRITY_CHECK\n");
     // 무결성 검증 결과 (예제에서 무조건 성공으로 처리)
-    bool check_success = true;
     char input[100];
     printf("Enter a string (type 'error' to error_mode: ) ");
     scanf("%99s", input);
-    if (strcmp(input, "error") == 0) {
-        check_success = false;  // "error"인 경우 false 반환
-    } else {
-        check_success = true;  // 그 외의 경우 true 반환
-    }
 
-    if (check_success) {
+/*
+        integrity_check():
+            def: IntegrityCheck.c
+            des: Dilithium을 사용하여 무결성을 검증함. 
+                 무결성 검증 성공 : OQS_SUCCESS
+                 무결성 검증 실패 : OQS_FAILED 
+*/
+    if (integrity_check() == OQS_SUCCESS) { 
         printf("Integrity check passed.\n");
         return current_state = SELF_TEST;
     } else {
@@ -83,13 +88,13 @@ State ISC_Selftest() {
     char input[100];
     printf("Enter a string (type 'error' to error_mode: ) ");
     scanf("%99s", input);
-    if (strcmp(input, "error") == 0) {
-        test_success = false;  // "error"인 경우 false 반환
-    } else {
-        test_success = true;  // 그 외의 경우 true 반환
-    }
-
-    if (test_success) {
+    /*
+        self_test():
+            def: SelfTest.c
+            des: Kyber, Dilithium, SHA3, SHAKE 함수 
+                 각각의 자가 시험을 시행함
+    */
+    if (self_test() == OQS_SUCCESS) {
         printf("Self-test passed.\n");
         return current_state = OPERATIONAL_MODE;
     } else {
@@ -101,29 +106,64 @@ State ISC_Selftest() {
 
 State ISC_operation() {
     printf("State: OPERATIONAL_MODE\n");
-    char input[100];
+    int input;
     bool operation_success;
-    printf("Enter a string (type 'error' to error_mode: ) ");
-    scanf("%99s", input);
-    
-    if (strcmp(input, "error") == 0) {
-        operation_success = false;  // "error"인 경우 false 반환
-    } else {
-        operation_success = true;  // 그 외의 경우 true 반환
-    }
+    printf("Enter a integer(1. ALL, 2. Kyber 3. Dilithium 4. SHA3 5. SHAKE )) ");
+    scanf("%d", &input);
 
-    if (operation_success){   
-        if (OQS_Kyber_768_test() == OQS_SUCCESS){
-            printf("Kyber test succeeded.\n");
-        } else {
-            printf("Kyber test failed.\n");
+    switch (input){
+        case 1:
+            if(OQS_Kyber_All_test() == OQS_SUCCESS && OQS_dilithium_All_test() == OQS_SUCCESS && ISC_SHA3_All_test() == OQS_SUCCESS && ISC_SHAKE_All_test() == OQS_SUCCESS)
+                return current_state = OPERATIONAL_MODE;
+            else{
+                printf("All Test Result Failed\n");
+                return current_state = ERROR_STATE;
+            }
+
+        case 2:
+            if (ISC_kyber_select() == OQS_SUCCESS){
+                printf("Kyber Test Result Success\n");
+                return current_state = OPERATIONAL_MODE;
+            }
+            
+            else{
+                printf("Kyber Test Result Failed\n");
+                return current_state = ERROR_STATE;
+            }
+        case 3:
+            if (ISC_dilithium_select() == OQS_SUCCESS){
+                printf("Dilithium Test Result Success\n");
+                return current_state = OPERATIONAL_MODE;
+            }
+            
+            else{
+                printf("Dilithium Test Result Failed\n");
+                return current_state = ERROR_STATE;
+            }
+        case 4:
+            if (SHA3_select() == OQS_SUCCESS) {
+                printf("SHA3 Test Result Success\n");
+                return current_state = OPERATIONAL_MODE;
+            } else {
+                printf("SHA3 Test Result Failed\n");
+                return current_state = ERROR_STATE;
+            }
+            break;
+
+        case 5:
+            if (SHAKE_select() == OQS_SUCCESS) {
+                printf("SHAKE Test Result Success\n");
+                return current_state = OPERATIONAL_MODE;
+            } else {
+                printf("SHAKE Test Result Failed\n");
+                return current_state = ERROR_STATE;
+            }
+            break;
+        default:
+            printf("OPERATIONAL_ERROR\n");
+            return current_state = ERROR_STATE;
         }
-        return OPERATIONAL_MODE;
-    } else {
-        printf("Operation failed.\n");
-        return current_state = ERROR_STATE;
     }
-}
 
 State ISC_error() {
     printf("State: ERROR_STATE\n");
