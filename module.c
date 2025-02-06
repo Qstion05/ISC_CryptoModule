@@ -94,7 +94,8 @@ State ISC_Selftest() {
             des: Kyber, Dilithium, SHA3, SHAKE 함수 
                  각각의 자가 시험을 시행함
     */
-    if (self_test() == OQS_SUCCESS) {
+
+    if (KyberKatTest() == OQS_SUCCESS) {
         printf("Self-test passed.\n");
         return current_state = OPERATIONAL_MODE;
     } else {
