@@ -3,5 +3,5 @@
 
 
 # Compile Option
-gcc -Wall -O2 $(pkg-config --cflags --libs liboqs) -I./include/sha3 include/sha3/sha3.c include/SelfTest.c include/IntegrityCheck.c tests/oqs_sha3_test.c tests/oqs_dilithium_test.c tests/oqs_kyber_test.c  module.c -loqs -o out
+gcc -Wall -O2 $(pkg-config --cflags --libs liboqs) -I./include/sha3 include/sha3/sha3.c include/SelfTest.c include/IntegrityCheck.c tests/oqs_sha3_test.c tests/oqs_dilithium_test.c tests/oqs_kyber_test.c  module.c -loqs -lcrypto -o out
 
