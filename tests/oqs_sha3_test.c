@@ -50,7 +50,7 @@ OQS_STATUS SHAKE_select() {
         case 3:
             return ISC_SHAKE_256_test();
         default:
-            printf("Invalid choice. Please enter 1 or 2.\n");
+            printf("Invalid choice. Please enter 1,2 or 3.\n");
             return OQS_ERROR;
     }
 }
