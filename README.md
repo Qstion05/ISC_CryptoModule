@@ -21,7 +21,7 @@
     | `oqs_sha3_test.c`      | SHA3 해시 함수 코드            |
     | `oqs_sha3_test.h`      | SHA3 코드의 헤더 파일          |
 
-  |'module.c' | 암호모듈 유한상태모듈 및 동작 코드|
+  | `module.c` | 암호모듈 유한상태모듈 및 동작 코드|
 
 # Compile Option
 gcc -Wall -O2 $(pkg-config --cflags --libs liboqs) -I./include/sha3 include/sha3/sha3.c include/SelfTest.c include/IntegrityCheck.c tests/oqs_sha3_test.c tests/oqs_dilithium_test.c tests/oqs_kyber_test.c  module.c -loqs -lcrypto -o out
