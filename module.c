@@ -7,19 +7,7 @@
 #include "tests/oqs_sha3_test.h"
 #include "include/IntegrityCheck.h"
 #include "include/SelfTest.h"
-
-
-// 상태 정의
-typedef enum {
-    POWER_ON,
-    INITIALIZATION,
-    INTEGRITY_CHECK,
-    SELF_TEST,
-    OPERATIONAL_MODE,
-    ERROR_STATE
-} State;
-#define MESSAGE_LEN 50
-
+#include "module.h"
 
 
 
@@ -94,8 +82,31 @@ State ISC_Selftest() {
             des: Kyber, Dilithium, SHA3, SHAKE 함수 
                  각각의 자가 시험을 시행함
     */
+    /*
+    generate_dilithium_req_file("vector/Dilithium_Test_Vector_2.req", 100);
+    generate_dilithium_req_file("vector/Dilithium_Test_Vector_3.req", 100);
+    generate_dilithium_req_file("vector/Dilithium_Test_Vector_5.req", 100);
+    */
+    generate_sha3_req_file("./vector/sha3_Test_Vector_256.req", 32);
+    generate_sha3_req_file("./vector/sha3_Test_Vector_512.req", 64);
+    generate_shake_req_file("./vector/SHAKE_Test_Vector_128.req", 16);
 
-    if (KyberKatTest() == OQS_SUCCESS) {
+    if(sha3_256_selftest("./vector/sha3_Test_Vector_256.req", "./vector/sha3_Test_Vector_256.rsp") == OQS_ERROR){
+        printf("SHA3_256 ERROR\n");
+        errorCode = 102;
+        return current_state = ERROR_STATE;
+    }
+    if(sha3_512_selftest("./vector/sha3_Test_Vector_512.req", "./vector/sha3_Test_Vector_512.rsp") == OQS_ERROR){
+        printf("SHA3_512 ERROR");
+        errorCode = 102;
+        return current_state = ERROR_STATE;
+    }
+    if(shake_128_selftest("./vector/SHAKE_Test_Vector_128.req", "./vector/SHAKE_Test_Vector_128.rsp") == OQS_ERROR){
+        printf("SHAKE_128 ERROR\n");
+        errorCode = 102;
+        return current_state = ERROR_STATE;
+    }
+    if (KyberKatTest() == OQS_SUCCESS && DilithiumKatTest() == OQS_SUCCESS) {
         printf("Self-test passed.\n");
         return current_state = OPERATIONAL_MODE;
     } else {
