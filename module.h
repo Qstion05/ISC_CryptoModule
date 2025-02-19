@@ -5,8 +5,13 @@
 #include "tests/oqs_dilithium_test.h"
 #include "tests/oqs_kyber_test.h"
 #include "tests/oqs_sha3_test.h"
-#include "include/IntegrityCheck.h"
-#include "include/SelfTest.h"
+#include "Source/IntegrityCheck.h"
+#include "Source/SelfTest.h"
+
+void sclear() { //터미널 청소 함수
+    printf("\033[H\033[J");
+    fflush(stdout);
+}
 
 typedef enum {
     POWER_ON,

@@ -5,8 +5,8 @@
 #include "tests/oqs_dilithium_test.h"
 #include "tests/oqs_kyber_test.h"
 #include "tests/oqs_sha3_test.h"
-#include "include/IntegrityCheck.h"
-#include "include/SelfTest.h"
+#include "Source/IntegrityCheck.h"
+#include "Source/SelfTest.h"
 #include "module.h"
 
 
@@ -17,13 +17,13 @@ int errorCode = 0; // 0 = 정상 상태
 
 // 상태 전이 함수들
 State ISC_Poweron() {
-    printf("State: POWER_ON\n");
+    printf("\nState: POWER_ON\n");
     printf("Initializing system...\n");
     return current_state = INITIALIZATION;
 }
 
 State ISC_Initialization() {
-    printf("State: INITIALIZATION\n");
+    printf("\nState: INITIALIZATION\n");
     // 초기화 성공 여부 (예제에서 무조건 성공으로 처리)
     bool init_success = true;
     char input[100];
@@ -41,83 +41,92 @@ State ISC_Initialization() {
     } else {
         printf("Initialization failed.\n");
         errorCode = 100;
+        sclear();
         return current_state = ERROR_STATE;
     }
 }
 
 State ISC_Integrity() {
-    printf("State: INTEGRITY_CHECK\n");
+    printf("\nState: INTEGRITY_CHECK\n");
     // 무결성 검증 결과 (예제에서 무조건 성공으로 처리)
     char input[100];
     printf("Enter a string (type 'error' to error_mode: ) ");
     scanf("%99s", input);
-
-/*
-        integrity_check():
-            def: IntegrityCheck.c
-            des: Dilithium을 사용하여 무결성을 검증함. 
-                 무결성 검증 성공 : OQS_SUCCESS
-                 무결성 검증 실패 : OQS_FAILED 
-*/
-    if (integrity_check() == OQS_SUCCESS) { 
+    if (IntegrityCheck() == OQS_SUCCESS) { 
         printf("Integrity check passed.\n");
         return current_state = SELF_TEST;
     } else {
         printf("Integrity check failed.\n");
         errorCode = 101;
+        sclear();
         return current_state = ERROR_STATE;
     }
 }
 
 State ISC_Selftest() {
-    printf("State: SELF_TEST\n");
+    printf("\nState: SELF_TEST\n");
     // 자가 시험 결과 (예제에서 무조건 성공으로 처리)
     bool test_success = true;
     char input[100];
     printf("Enter a string (type 'error' to error_mode: ) ");
     scanf("%99s", input);
     /*
-        self_test():
-            def: SelfTest.c
-            des: Kyber, Dilithium, SHA3, SHAKE 함수 
-                 각각의 자가 시험을 시행함
-    */
-    /*
     generate_dilithium_req_file("vector/Dilithium_Test_Vector_2.req", 100);
     generate_dilithium_req_file("vector/Dilithium_Test_Vector_3.req", 100);
     generate_dilithium_req_file("vector/Dilithium_Test_Vector_5.req", 100);
-    */
-    generate_sha3_req_file("./vector/sha3_Test_Vector_256.req", 32);
-    generate_sha3_req_file("./vector/sha3_Test_Vector_512.req", 64);
-    generate_shake_req_file("./vector/SHAKE_Test_Vector_128.req", 16);
+    
+    generate_smt_file("./vector/SHA3/SHA3_256_SMT.req");
+    generate_lmt_file("./vector/SHA3/SHA3_256_LMT.req");
+    generate_sha3_mct_file("./vector/SHA3/SHA3_256_MCT.req", 32);
 
-    if(sha3_256_selftest("./vector/sha3_Test_Vector_256.req", "./vector/sha3_Test_Vector_256.rsp") == OQS_ERROR){
-        printf("SHA3_256 ERROR\n");
-        errorCode = 102;
+    generate_smt_file("./vector/SHA3/SHA3_512_SMT.req");
+    generate_lmt_file("./vector/SHA3/SHA3_512_LMT.req");
+    generate_sha3_mct_file("./vector/SHA3/SHA3_512_MCT.req", 64);
+
+    generate_smt_file("./vector/SHAKE/SHAKE_128_SMT.req");
+    generate_lmt_file("./vector/SHAKE/SHAKE_128_LMT.req");
+    generate_shake_mct_file("./vector/SHAKE/SHAKE_128_MCT.req", 16);
+
+    generate_smt_file("./vector/SHAKE/SHAKE_256_SMT.req");
+    generate_lmt_file("./vector/SHAKE/SHAKE_256_LMT.req");
+    generate_shake_mct_file("./vector/SHAKE/SHAKE_256_MCT.req", 32);
+    */
+
+    if (KyberKatTest() != OQS_SUCCESS) {
+        printf("Kyber Self-test failed.\n");
+        sclear();
+        return current_state = ERROR_STATE;
+    } 
+    printf("Kyber Kat Test Success!\n");
+
+    if (DilithiumKatTest() != OQS_SUCCESS) {
+        printf("Dilithium Self-test failed.\n");
+        sclear();
         return current_state = ERROR_STATE;
     }
-    if(sha3_512_selftest("./vector/sha3_Test_Vector_512.req", "./vector/sha3_Test_Vector_512.rsp") == OQS_ERROR){
-        printf("SHA3_512 ERROR");
-        errorCode = 102;
+    printf("Dilithium Kat Test Success!\n");
+
+    if (SHA3KatTest() != OQS_SUCCESS) {
+        printf("SHA3 Self-test failed.\n");
+        sclear();
         return current_state = ERROR_STATE;
     }
-    if(shake_128_selftest("./vector/SHAKE_Test_Vector_128.req", "./vector/SHAKE_Test_Vector_128.rsp") == OQS_ERROR){
-        printf("SHAKE_128 ERROR\n");
-        errorCode = 102;
+    printf("SHA3 Kat Test Success!\n");
+
+    if (SHAKEKatTest() != OQS_SUCCESS) {
+        printf("SHAKE Self-test failed.\n");
+        sclear();
         return current_state = ERROR_STATE;
     }
-    if (KyberKatTest() == OQS_SUCCESS && DilithiumKatTest() == OQS_SUCCESS) {
-        printf("Self-test passed.\n");
-        return current_state = OPERATIONAL_MODE;
-    } else {
-        printf("Self-test failed.\n");
-        errorCode = 102;
-        return current_state = ERROR_STATE;
-    }
+    printf("SHAKE Kat Test Success!\n\n");
+    printf("=======================\nALL Kat Test Success!\n=======================\n\n");
+    return current_state = OPERATIONAL_MODE;
 }
 
+
+
 State ISC_operation() {
-    printf("State: OPERATIONAL_MODE\n");
+    printf("\nState: OPERATIONAL_MODE\n");
     int input;
     bool operation_success;
     printf("Enter a integer(1. ALL, 2. Kyber 3. Dilithium 4. SHA3 5. SHAKE )) ");
@@ -126,38 +135,50 @@ State ISC_operation() {
     switch (input){
         case 1:
             if(OQS_Kyber_All_test() == OQS_SUCCESS && OQS_dilithium_All_test() == OQS_SUCCESS && ISC_SHA3_All_test() == OQS_SUCCESS && ISC_SHAKE_All_test() == OQS_SUCCESS)
+    
                 return current_state = OPERATIONAL_MODE;
             else{
                 printf("All Test Result Failed\n");
+    
+                sclear();
                 return current_state = ERROR_STATE;
             }
 
         case 2:
             if (ISC_kyber_select() == OQS_SUCCESS){
                 printf("Kyber Test Result Success\n");
+    
                 return current_state = OPERATIONAL_MODE;
             }
             
             else{
                 printf("Kyber Test Result Failed\n");
+    
+                sclear();
                 return current_state = ERROR_STATE;
             }
         case 3:
             if (ISC_dilithium_select() == OQS_SUCCESS){
                 printf("Dilithium Test Result Success\n");
+    
                 return current_state = OPERATIONAL_MODE;
             }
             
             else{
                 printf("Dilithium Test Result Failed\n");
+    
+                sclear();
                 return current_state = ERROR_STATE;
             }
         case 4:
             if (SHA3_select() == OQS_SUCCESS) {
                 printf("SHA3 Test Result Success\n");
+    
                 return current_state = OPERATIONAL_MODE;
             } else {
                 printf("SHA3 Test Result Failed\n");
+    
+                sclear();
                 return current_state = ERROR_STATE;
             }
             break;
@@ -165,32 +186,37 @@ State ISC_operation() {
         case 5:
             if (SHAKE_select() == OQS_SUCCESS) {
                 printf("SHAKE Test Result Success\n");
+    
                 return current_state = OPERATIONAL_MODE;
             } else {
                 printf("SHAKE Test Result Failed\n");
+    
+                sclear();
                 return current_state = ERROR_STATE;
             }
             break;
         default:
             printf("OPERATIONAL_ERROR\n");
+
+            sclear();
             return current_state = ERROR_STATE;
         }
     }
 
 State ISC_error() {
-    printf("State: ERROR_STATE\n");
+    printf("\nState: ERROR_STATE\n");
     switch (errorCode){
         case 100: //errorCode = 100
-            printf("errorCode: %d\n", errorCode);
+            printf("errorCode: %d\n\n", errorCode);
             break;      
         case 101: //errorCode = 100
-            printf("errorCode: %d\n", errorCode);  
+            printf("errorCode: %d\n\n", errorCode);  
             break;   
         case 102: //errorCode = 100
-            printf("errorCode: %d\n", errorCode);
+            printf("errorCode: %d\n\n", errorCode);
             break;
         default:
-            printf("Unknown Error\n");    
+            printf("Unknown Error\n\n");    
     }
     return current_state = INITIALIZATION;
 }
