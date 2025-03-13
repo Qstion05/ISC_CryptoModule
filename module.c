@@ -5,10 +5,12 @@
 #include "tests/oqs_dilithium_test.h"
 #include "tests/oqs_kyber_test.h"
 #include "tests/oqs_sha3_test.h"
-#include "include/IntegrityCheck.h"
-#include "include/SelfTest.h"
+#include "Source/IntegrityCheck.h"
+#include "Source/SelfTest.h"
+#include "module.h"
 
 
+int errorCode;
 // 상태 정의
 typedef enum {
     POWER_ON,            // 전원 켜짐
@@ -25,99 +27,145 @@ typedef enum {
 
 // 현재 상태를 저장하는 변수
 State current_state = POWER_ON;
-int errorCode = 0; // 0 = 정상 상태
 
 // 상태 전이 함수들
 State ISC_Poweron() {
-    printf("State: POWER_ON\n");
-    printf("Initializing system...\n");
+    printf("\nState: POWER_ON\n");
+    printf("Power On...!\n");
     return current_state = INITIALIZATION;
 }
 
 State ISC_Initialization() {
-    printf("State: INITIALIZATION\n");
-    // 초기화 성공 여부 (예제에서 무조건 성공으로 처리)
-    bool init_success = true;
-    char input[100];
-    printf("Enter a string (type 'error' to error_mode: ) ");
-    scanf("%99s", input);
-    if (strcmp(input, "error") == 0) {
-        init_success = false;  // "error"인 경우 false 반환
-    } else {
-        init_success = true;  // 그 외의 경우 true 반환
-    }
+    printf("\nState: INITIALIZATION\n");
 
-    if (init_success) {
-        printf("Initialization complete.\n");
-        return current_state = INTEGRITY_CHECK;
-    } else {
-        printf("Initialization failed.\n");
-        errorCode = 100;
-        return current_state = ERROR_STATE;
+    // OQS 라이브러리 초기화 (필요한 경우)
+    OQS_init();
+
+    // 메모리 초기화 (모듈에서 사용하는 모든 변수)
+    uint8_t *public_key = NULL, *secret_key = NULL;
+    size_t pk_len = 0, sk_len = 0;
+
+    // Kyber 관련 메모리 초기화
+    uint8_t *kyber_public_key = NULL, *kyber_secret_key = NULL;
+    uint8_t *kyber_ciphertext = NULL, *kyber_shared_secret = NULL;
+    
+    // SHA3 관련 메모리 초기화
+    uint8_t sha3_hash[32] = {0};
+
+    // 기존 할당된 메모리 정리
+    if (public_key) OQS_MEM_cleanse(public_key, pk_len);
+    if (secret_key) OQS_MEM_cleanse(secret_key, sk_len);
+    if (kyber_public_key) OQS_MEM_cleanse(kyber_public_key, OQS_KEM_kyber_768_length_public_key);
+    if (kyber_secret_key) OQS_MEM_cleanse(kyber_secret_key, OQS_KEM_kyber_768_length_secret_key);
+    if (kyber_ciphertext) OQS_MEM_cleanse(kyber_ciphertext, OQS_KEM_kyber_768_length_ciphertext);
+    if (kyber_shared_secret) OQS_MEM_cleanse(kyber_shared_secret, OQS_KEM_kyber_768_length_shared_secret);
+        
+    // 메모리 재할당 및 초기화
+    public_key = malloc(OQS_SIG_dilithium_3_length_public_key);
+    secret_key = malloc(OQS_SIG_dilithium_3_length_secret_key);
+    kyber_public_key = malloc(OQS_KEM_kyber_768_length_public_key);
+    kyber_secret_key = malloc(OQS_KEM_kyber_768_length_secret_key);
+    kyber_ciphertext = malloc(OQS_KEM_kyber_768_length_ciphertext);
+    kyber_shared_secret = malloc(OQS_KEM_kyber_768_length_shared_secret);
+    
+    if (!public_key || !secret_key || !kyber_public_key || !kyber_secret_key || !kyber_ciphertext || !kyber_shared_secret) {
+        fprintf(stderr, "Memory allocation failed during initialization.\n");
+        return ERROR_STATE;
     }
+    
+    memset(public_key, 0, OQS_SIG_dilithium_3_length_public_key);
+    memset(secret_key, 0, OQS_SIG_dilithium_3_length_secret_key);
+    memset(kyber_public_key, 0, OQS_KEM_kyber_768_length_public_key);
+    memset(kyber_secret_key, 0, OQS_KEM_kyber_768_length_secret_key);
+    memset(kyber_ciphertext, 0, OQS_KEM_kyber_768_length_ciphertext);
+    memset(kyber_shared_secret, 0, OQS_KEM_kyber_768_length_shared_secret);
+    
+    memset(sha3_hash, 0, sizeof(sha3_hash));
+
+    // 초기화 완료 메시지
+    printf("Memory initialization complete.\n");
+
+    return current_state = INTEGRITY_CHECK;
 }
 
 State ISC_Integrity() {
-    printf("State: INTEGRITY_CHECK\n");
+    printf("\nState: INTEGRITY_CHECK\n");
     // 무결성 검증 결과 (예제에서 무조건 성공으로 처리)
-    char input[100];
-    printf("Enter a string (type 'error' to error_mode: ) ");
-    scanf("%99s", input);
-
-/*
-        integrity_check():
-            def: IntegrityCheck.c
-            des: Dilithium을 사용하여 무결성을 검증함. 
-                 무결성 검증 성공 : OQS_SUCCESS
-                 무결성 검증 실패 : OQS_FAILED 
-*/
-    if (integrity_check() == OQS_SUCCESS) { 
-        printf("Integrity check passed.\n");
-        return current_state = SELF_TEST;
-    } else {
-        printf("Integrity check failed.\n");
-        errorCode = 101;
-        return current_state = ERROR_STATE;
-    }
+    return current_state = SELF_TEST;
 }
 
 State ISC_Selftest() {
-    printf("State: SELF_TEST\n");
-    // 자가 시험 결과 (예제에서 무조건 성공으로 처리)
-    bool test_success = true;
-    char input[100];
-    printf("Enter a string (type 'error' to error_mode: ) ");
-    scanf("%99s", input);
+    printf("\nState: SELF_TEST\n");
     /*
-        self_test():
-            def: SelfTest.c
-            des: Kyber, Dilithium, SHA3, SHAKE 함수 
-                 각각의 자가 시험을 시행함
+    generate_dilithium_req_file("vector/Dilithium_Test_Vector_2.req", 100);
+    generate_dilithium_req_file("vector/Dilithium_Test_Vector_3.req", 100);
+    generate_dilithium_req_file("vector/Dilithium_Test_Vector_5.req", 100);
+    
+    generate_smt_file("./vector/SHA3/SHA3_256_SMT.req");
+    generate_lmt_file("./vector/SHA3/SHA3_256_LMT.req");
+    generate_sha3_mct_file("./vector/SHA3/SHA3_256_MCT.req", 32);
+
+    generate_smt_file("./vector/SHA3/SHA3_512_SMT.req");
+    generate_lmt_file("./vector/SHA3/SHA3_512_LMT.req");
+    generate_sha3_mct_file("./vector/SHA3/SHA3_512_MCT.req", 64);
+
+    generate_smt_file("./vector/SHAKE/SHAKE_128_SMT.req");
+    generate_lmt_file("./vector/SHAKE/SHAKE_128_LMT.req");
+    generate_shake_mct_file("./vector/SHAKE/SHAKE_128_MCT.req", 16);
+
+    generate_smt_file("./vector/SHAKE/SHAKE_256_SMT.req");
+    generate_lmt_file("./vector/SHAKE/SHAKE_256_LMT.req");
+    generate_shake_mct_file("./vector/SHAKE/SHAKE_256_MCT.req", 32);
     */
 
-    if (KyberKatTest() == OQS_SUCCESS) {
-        printf("Self-test passed.\n");
-        return current_state = OPERATIONAL_MODE;
-    } else {
-        printf("Self-test failed.\n");
-        errorCode = 102;
+    if (KyberKatTest() != OQS_SUCCESS) {
+        printf("Kyber Self-test failed.\n");
+        sclear();
+        return current_state = ERROR_STATE;
+    } 
+    printf("Kyber Kat Test Success!\n");
+
+    if (DilithiumKatTest() != OQS_SUCCESS) {
+        printf("Dilithium Self-test failed.\n");
+        sclear();
         return current_state = ERROR_STATE;
     }
+    printf("Dilithium Kat Test Success!\n");
+
+    if (SHA3KatTest() != OQS_SUCCESS) {
+        printf("SHA3 Self-test failed.\n");
+        sclear();
+        return current_state = ERROR_STATE;
+    }
+    printf("SHA3 Kat Test Success!\n");
+
+    if (SHAKEKatTest() != OQS_SUCCESS) {
+        printf("SHAKE Self-test failed.\n");
+        sclear();
+        return current_state = ERROR_STATE;
+    }
+    printf("SHAKE Kat Test Success!\n\n");
+    printf("=======================\nALL Kat Test Success!\n=======================\n\n");
+    return current_state = OPERATIONAL_MODE;
 }
 
+
+
 State ISC_operation() {
-    printf("State: OPERATIONAL_MODE\n");
+    printf("\nState: OPERATIONAL_MODE\n");
     int input;
-    bool operation_success;
     printf("Enter a integer(1. ALL, 2. Kyber 3. Dilithium 4. SHA3 5. SHAKE )) ");
-    scanf("%d", &input);
+    if (scanf("%d", &input) != 1) {
+        printf("Invalid number input.\n");
+        while (getchar() != '\n');  // 버퍼 비우기
+        return ERROR_STATE;
+    }
 
     switch (input){
         case 1:
             if(OQS_Kyber_All_test() == OQS_SUCCESS && OQS_dilithium_All_test() == OQS_SUCCESS && ISC_SHA3_All_test() == OQS_SUCCESS && ISC_SHAKE_All_test() == OQS_SUCCESS)
                 return current_state = OPERATIONAL_MODE;
             else{
-                printf("All Test Result Failed\n");
                 return current_state = ERROR_STATE;
             }
 
@@ -127,26 +175,34 @@ State ISC_operation() {
                 return current_state = OPERATIONAL_MODE;
             }
             
-            else{
+            else{ 
                 printf("Kyber Test Result Failed\n");
+    
+                sclear();
                 return current_state = ERROR_STATE;
             }
         case 3:
             if (ISC_dilithium_select() == OQS_SUCCESS){
                 printf("Dilithium Test Result Success\n");
+    
                 return current_state = OPERATIONAL_MODE;
             }
             
             else{
                 printf("Dilithium Test Result Failed\n");
+    
+                sclear();
                 return current_state = ERROR_STATE;
             }
         case 4:
             if (SHA3_select() == OQS_SUCCESS) {
                 printf("SHA3 Test Result Success\n");
+    
                 return current_state = OPERATIONAL_MODE;
             } else {
                 printf("SHA3 Test Result Failed\n");
+    
+                sclear();
                 return current_state = ERROR_STATE;
             }
             break;
@@ -154,32 +210,114 @@ State ISC_operation() {
         case 5:
             if (SHAKE_select() == OQS_SUCCESS) {
                 printf("SHAKE Test Result Success\n");
+    
                 return current_state = OPERATIONAL_MODE;
             } else {
                 printf("SHAKE Test Result Failed\n");
+                sclear();
                 return current_state = ERROR_STATE;
             }
             break;
         default:
             printf("OPERATIONAL_ERROR\n");
+
+            sclear();
             return current_state = ERROR_STATE;
         }
     }
 
 State ISC_error() {
-    printf("State: ERROR_STATE\n");
+    printf("\nState: ERROR_STATE\n");
     switch (errorCode){
-        case 100: //errorCode = 100
-            printf("errorCode: %d\n", errorCode);
-            break;      
-        case 101: //errorCode = 100
-            printf("errorCode: %d\n", errorCode);  
-            break;   
-        case 102: //errorCode = 100
-            printf("errorCode: %d\n", errorCode);
+        case 1100: //"Initialization Error, Memory Not Initialize"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("Memory not Initialize\n");
+            break; 
+
+        case 3100: //"Kyber Error, Kyber's Keygen Failed"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("Kyber's Selftest Failed\n");
+            break; 
+
+        case 3101: //"Kyber Error, Kyber's encaps Failed"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("Kyber's encaps Failed\n");
             break;
+
+        case 3102: //"Kyber Error, Kyber's decaps Failed"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("Kyber's decaps Failed\n");
+            break;
+
+        case 3103: //"Kyber Error, Kyber's Selftest Failed"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("Kyber's Selftest Failed\n");
+            break; 
+
+        case 3104: //"Dilithium Error, Dilithium's Keygen Failed"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("Dilithium's Selftest Failed\n");
+            break; 
+
+        case 3105: //"Dilithium Error, Dilithium's sign Failed"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("Dilithium's sign Failed\n");
+            break;
+
+        case 3106: //"Dilithium Error, Dilithium's verify Failed"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("Dilithium's verify Failed\n");
+            break;
+
+        case 3107: //"Dilithium Error, Dilithium's Selftest Failed"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("Dilithium's Selftest Failed\n");
+            break; 
+
+        case 3108: //"Sha3 Error, Sha3's Selftest Failed"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("Sha3's Selftest Failed\n");
+            break; 
+
+        case 3109: //"SHAKE Error, SHAKE's Selftest Failed"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("SHAKE Selftest Failed\n");
+            break;
+
+        case 4100: //"Operation Error, 'Wrong Input"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("Wrong Input\n");
+            break; 
+
+        case 4101: //"Operation Error, Kyber's Operation Failed"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("Kyber's Operation Failed\n");
+            break; 
+
+        case 4102: //"Operation Error, Dilithium's Operation Failed"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("Dilithium's Operation Failed\n");
+            break; 
+
+        case 4103: //"Operation Error, SHA3's Operation Failed"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("SHA3's Operation Failed\n");
+            break; 
+
+        case 4104: //"Operation Error, SHAKE's Operation Failed"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("SHAKE's Operation Failed\n");
+            break; 
+        case 5100: //"urandom not open"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("/dev/urandom could not open\n");
+            break; 
+        case 5101: //"File not open"
+            printf("errorCode: %d\n\n", errorCode);
+            printf("File could not open\n");
+            break; 
         default:
-            printf("Unknown Error\n");    
+            printf("Unknown Error\n\n");    
     }
     return current_state = INITIALIZATION;
 }

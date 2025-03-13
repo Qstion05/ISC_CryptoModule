@@ -2,7 +2,7 @@
 #include <oqs/oqs.h>
 
 #include "oqs_dilithium_test.h"
-
+#include "../Source/common.h"
 // Cleanup utility
 void cleanup_dilithium_stack(uint8_t *secret_key, size_t secret_key_len) {
     OQS_MEM_cleanse(secret_key, secret_key_len);
@@ -75,11 +75,11 @@ OQS_STATUS OQS_dilithium_2_test() {
         return OQS_ERROR;
     }
 
-    printf("[example_stack] OQS_SIG_dilithium_2 operations completed successfully.\n");
+    printf("[ISC_Dilithium_2] dilithium-2 operations completed successfully.\n");
     cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_2_length_secret_key);
     return OQS_SUCCESS;
 
-    printf("[example_stack] OQS_SIG_dilithium_2 was not enabled at compile-time.\n");
+    printf("[ISC_Dilithium_2] dilithium-2 was not enabled at compile-time.\n");
     cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_2_length_secret_key);
     return OQS_ERROR;
 }
@@ -118,11 +118,11 @@ OQS_STATUS OQS_dilithium_3_test() {
         return OQS_ERROR;
     }
 
-    printf("[example_stack] OQS_SIG_dilithium_3 operations completed successfully.\n");
+    printf("[ISC_Dilithium_3] dilithium-3 operations completed successfully.\n");
     cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_3_length_secret_key);
     return OQS_SUCCESS;
 
-    printf("[example_stack] OQS_SIG_dilithium_3 was not enabled at compile-time.\n");
+    printf("[ISC_Dilithium_3] dilithium-3 was not enabled at compile-time.\n");
     cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_3_length_secret_key);
     return OQS_ERROR;
 }
@@ -161,11 +161,11 @@ OQS_STATUS OQS_dilithium_5_test() {
         return OQS_ERROR;
     }
 
-    printf("[example_stack] OQS_SIG_dilithium_5 operations completed successfully.\n");
+    printf("[ISC_Dilithium_5] dilithium-5 operations completed successfully.\n");
     cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_5_length_secret_key);
     return OQS_SUCCESS;
 
-    printf("[example_stack] OQS_SIG_dilithium_5 was not enabled at compile-time.\n");
+    printf("[ISC_Dilithium_5] dilithium-5 was not enabled at compile-time.\n");
     cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_5_length_secret_key);
     return OQS_ERROR;
 }

@@ -2,7 +2,7 @@
 #include <string.h>
 #include <oqs/oqs.h>
 #include "oqs_kyber_test.h"
-
+#include "../Source/common.h"
 
 OQS_STATUS OQS_Kyber_keygen(uint8_t *public_key, uint8_t *secret_key){
     OQS_STATUS rc = OQS_KEM_kyber_768_keypair(public_key, secret_key);
@@ -10,13 +10,6 @@ OQS_STATUS OQS_Kyber_keygen(uint8_t *public_key, uint8_t *secret_key){
         fprintf(stderr, "ERROR: OQS_KEM_kyber_768_keypair failed!\n");
         return OQS_ERROR;
     }
-
-    printf("Public key:\n");
-    for (size_t i = 0; i < OQS_KEM_kyber_768_length_public_key; i++) {
-        printf("%02X", public_key[i]);
-    }
-    printf("\n\n");
-
     return OQS_SUCCESS;
 }
 
@@ -26,20 +19,6 @@ OQS_STATUS OQS_Kyber_encaps(uint8_t *ciphertext, uint8_t *shared_secret_e, const
         fprintf(stderr, "ERROR: OQS_KEM_kyber_768_encaps failed!\n");
         return OQS_ERROR;
     }
-
-    printf("ciphertext:\n");
-    for (size_t i = 0; i < OQS_KEM_kyber_768_length_ciphertext; i++) {
-        printf("%02X", ciphertext[i]);
-    }
-    printf("\n\n"); 
-
-
-    printf("shared_secret_e:\n");
-    for (size_t i = 0; i < OQS_KEM_kyber_768_length_shared_secret; i++) {
-        printf("%02X", shared_secret_e[i]);
-    }
-    printf("\n\n");
-
     return OQS_SUCCESS;
 }
 
@@ -112,30 +91,11 @@ OQS_STATUS OQS_Kyber_512_test() {
         return OQS_ERROR;
     }
 
-    printf("Public key:\n");
-    for (size_t i = 0; i < OQS_KEM_kyber_512_length_public_key; i++) {
-        printf("%02X", public_key[i]);
-    }
-    printf("\n\n");
-
     rc = OQS_KEM_kyber_512_encaps(ciphertext, shared_secret_e, public_key);
     if (rc != OQS_SUCCESS) {
         fprintf(stderr, "ERROR: OQS_KEM_kyber_512_encaps failed!\n");
         return OQS_ERROR;
     }
-
-    printf("ciphertext:\n");
-    for (size_t i = 0; i < OQS_KEM_kyber_512_length_ciphertext; i++) {
-        printf("%02X", ciphertext[i]);
-    }
-    printf("\n\n"); 
-
-
-    printf("shared_secret_e:\n");
-    for (size_t i = 0; i < OQS_KEM_kyber_512_length_shared_secret; i++) {
-        printf("%02X", shared_secret_e[i]);
-    }
-    printf("\n\n");
 
     rc = OQS_KEM_kyber_512_decaps(shared_secret_d, ciphertext, secret_key);
     if (rc != OQS_SUCCESS) {
@@ -151,7 +111,7 @@ OQS_STATUS OQS_Kyber_512_test() {
         return OQS_ERROR;
     }
 
-    printf("\n[OQS_Kyber_512_test] Kyber-512 operations completed successfully.\n");
+    printf("[ISC_Kyber_512] Kyber-512 operations completed successfully.\n");
     cleanup_kyber_stack(secret_key, OQS_KEM_kyber_512_length_secret_key,
                       shared_secret_e, shared_secret_d,
                       OQS_KEM_kyber_512_length_shared_secret);
@@ -172,30 +132,11 @@ OQS_STATUS OQS_Kyber_768_test() {
         return OQS_ERROR;
     }
 
-    printf("Public key:\n");
-    for (size_t i = 0; i < OQS_KEM_kyber_768_length_public_key; i++) {
-        printf("%02X", public_key[i]);
-    }
-    printf("\n\n");
-
     rc = OQS_KEM_kyber_768_encaps(ciphertext, shared_secret_e, public_key);
     if (rc != OQS_SUCCESS) {
         fprintf(stderr, "ERROR: OQS_KEM_kyber_768_encaps failed!\n");
         return OQS_ERROR;
     }
-
-    printf("ciphertext:\n");
-    for (size_t i = 0; i < OQS_KEM_kyber_768_length_ciphertext; i++) {
-        printf("%02X", ciphertext[i]);
-    }
-    printf("\n\n"); 
-
-
-    printf("shared_secret_e:\n");
-    for (size_t i = 0; i < OQS_KEM_kyber_768_length_shared_secret; i++) {
-        printf("%02X", shared_secret_e[i]);
-    }
-    printf("\n\n");
 
     rc = OQS_KEM_kyber_768_decaps(shared_secret_d, ciphertext, secret_key);
     if (rc != OQS_SUCCESS) {
@@ -211,7 +152,7 @@ OQS_STATUS OQS_Kyber_768_test() {
         return OQS_ERROR;
     }
 
-    printf("\n[OQS_Kyber_768_test] Kyber-768 operations completed successfully.\n");
+    printf("[ISC_Kyber_768] Kyber-768 operations completed successfully.\n");
     cleanup_kyber_stack(secret_key, OQS_KEM_kyber_768_length_secret_key,
                       shared_secret_e, shared_secret_d,
                       OQS_KEM_kyber_768_length_shared_secret);
@@ -233,30 +174,11 @@ OQS_STATUS OQS_Kyber_1024_test() {
         return OQS_ERROR;
     }
 
-    printf("Public key:\n");
-    for (size_t i = 0; i < OQS_KEM_kyber_1024_length_public_key; i++) {
-        printf("%02X", public_key[i]);
-    }
-    printf("\n\n");
-
     rc = OQS_KEM_kyber_1024_encaps(ciphertext, shared_secret_e, public_key);
     if (rc != OQS_SUCCESS) {
         fprintf(stderr, "ERROR: OQS_KEM_kyber_1024_encaps failed!\n");
         return OQS_ERROR;
     }
-
-    printf("ciphertext:\n");
-    for (size_t i = 0; i < OQS_KEM_kyber_1024_length_ciphertext; i++) {
-        printf("%02X", ciphertext[i]);
-    }
-    printf("\n\n"); 
-
-
-    printf("shared_secret_e:\n");
-    for (size_t i = 0; i < OQS_KEM_kyber_1024_length_shared_secret; i++) {
-        printf("%02X", shared_secret_e[i]);
-    }
-    printf("\n\n");
 
     rc = OQS_KEM_kyber_1024_decaps(shared_secret_d, ciphertext, secret_key);
     if (rc != OQS_SUCCESS) {
@@ -272,7 +194,7 @@ OQS_STATUS OQS_Kyber_1024_test() {
         return OQS_ERROR;
     }
 
-    printf("\n[OQS_Kyber_1024_test] Kyber-1024 operations completed successfully.\n");
+    printf("[ISC_Kyber_1024] Kyber-1024 operations completed successfully.\n");
     cleanup_kyber_stack(secret_key, OQS_KEM_kyber_1024_length_secret_key,
                       shared_secret_e, shared_secret_d,
                       OQS_KEM_kyber_1024_length_shared_secret);

@@ -1,0 +1,46 @@
+1. PowerOn
+	1-1. 알려지지 않은 오류
+
+2. Initialization
+	2-1. 메모리가 초기화 되지 않음
+	2-2. 알려지지 않은 오류
+
+3. Integrity
+	3-1.
+	3-2. 알려지지 않은 오류
+
+4. Selftest
+	4-1. Kyber 셀프테스트 실패
+	4-2. Dilithium 셀프테스트 실패
+	4-3. Sha3 셀프테스트 실패
+	4-4. SHAKE 셀프테스트 실패
+	4-5. 알려지지 않은 오류
+
+
+5. Operation
+	5-1. 질못된 입력
+	5-2. Kyber 실행 실패
+	5-3. Dilithium 실행 실패
+	5-4. Sha3 실행 실패
+	5-5. SHAKE 실행 실패
+
+
+=======================================
+
+
+6. ISCrandombytes
+	6-1. /dev/urandom 읽기 실패
+
+7. SelfTest
+	7-1. 테스트 벡터 파일 열기 실패
+	7-2. /dev/urandom 읽기 실패
+	7-3. Kyber.keygen 과정 실패
+	7-4. Kyber.encaps 과정 실패
+	7-5. Kyber.decaps 과정 실패
+
+	7-6. Dilihtium.keygen 과정 실패
+	7-7. Dilithium.sign 과정 실패
+	7-8. Dilithium.verify 과정 실패
+	7-9. Kyber.keygen 과정 실패
+	7-10. Kyber.encaps 과정 실패
+	7-11. Kyber.decaps 과정 실패
