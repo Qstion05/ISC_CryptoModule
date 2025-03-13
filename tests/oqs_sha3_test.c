@@ -3,7 +3,7 @@
 #include <string.h>
 #include <openssl/evp.h>
 #include <oqs/oqs.h>
-
+#include "../Source/common.h"
 #define MESSAGE_LEN 50
 
 // SHA3-256 테스트

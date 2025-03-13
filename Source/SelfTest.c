@@ -6,19 +6,12 @@
 #include <unistd.h>
 #include <oqs/oqs.h>
 #include <openssl/evp.h>
+#include "common.h"
 
 #define SEED_SIZE 48
 #define MAX_MESSAGE_LEN 10000
 #define MCT_ITERATIONS 100
 #define MSG_BUFFER_SIZE 1000000
-
-static void kat_randombytes(uint8_t *random_array, size_t bytes_to_read) {
-    static unsigned int seed_offset = 0;
-    for (size_t i = 0; i < bytes_to_read; i++) {
-        random_array[i] = (uint8_t)(rand() % 256);
-    }
-    seed_offset += bytes_to_read;
-}
 
 void generate_dilithium_req_file(const char *filename, int count) {
     FILE *fp = fopen(filename, "w");
@@ -154,7 +147,12 @@ void generate_shake_mct_file(const char *filename, int seedbyte) {
     
     for (size_t count = 0; count < MCT_ITERATIONS; count++) {
         uint16_t raw_len;
-        read(urandom_fd, &raw_len, sizeof(raw_len));
+        ssize_t bytes_read = read(urandom_fd, &raw_len, sizeof(raw_len));
+        if (bytes_read != sizeof(raw_len)) {
+            perror("Failed to read from /dev/urandom");
+            close(urandom_fd);
+            return;
+        }
 
         size_t len = (raw_len % ((1496 - 104 + 1) / 8)) * 8 + 104;
         
@@ -167,6 +165,7 @@ void generate_shake_mct_file(const char *filename, int seedbyte) {
     fclose(file);
     printf("SHAKE MCT test vectors saved to %s\n", filename);
 }
+
 
 OQS_STATUS kyber_512_selftest(const char *req_filename, const char *rsp_filename) {
     FILE *fp_req, *fp_rsp;
@@ -199,7 +198,7 @@ OQS_STATUS kyber_512_selftest(const char *req_filename, const char *rsp_filename
 
             // PRNG를 결정론적 KAT 방식으로 설정
             srand(*(unsigned int *)seed);
-            OQS_randombytes_custom_algorithm(kat_randombytes);
+            OQS_randombytes_custom_algorithm(ISCrandombytes);
 
             // Kyber 키 쌍 생성
             if (OQS_KEM_kyber_512_keypair(pk, sk) != OQS_SUCCESS) {
@@ -284,7 +283,7 @@ OQS_STATUS kyber_768_selftest(const char *req_filename, const char *rsp_filename
 
             // PRNG를 결정론적 KAT 방식으로 설정
             srand(*(unsigned int *)seed);
-            OQS_randombytes_custom_algorithm(kat_randombytes);
+            OQS_randombytes_custom_algorithm(ISCrandombytes);
 
             // Kyber 키 쌍 생성
             if (OQS_KEM_kyber_768_keypair(pk, sk) != OQS_SUCCESS) {
@@ -371,7 +370,7 @@ OQS_STATUS kyber_1024_selftest(const char *req_filename, const char *rsp_filenam
 
             // PRNG를 결정론적 KAT 방식으로 설정
             srand(*(unsigned int *)seed);
-            OQS_randombytes_custom_algorithm(kat_randombytes);
+            OQS_randombytes_custom_algorithm(ISCrandombytes);
 
             // Kyber 키 쌍 생성
             if (OQS_KEM_kyber_1024_keypair(pk, sk) != OQS_SUCCESS) {
@@ -456,7 +455,7 @@ OQS_STATUS dilithium_2_selftest(const char *req_filename, const char *rsp_filena
             fprintf(fp_rsp, "seed = %s", line + 7);
 
             srand(*(unsigned int *)seed);
-            OQS_randombytes_custom_algorithm(kat_randombytes);
+            OQS_randombytes_custom_algorithm(ISCrandombytes);
 
         } else if (sscanf(line, "mlen = %zu", &mlen) == 1) {
             fprintf(fp_rsp, "mlen = %zu\n", mlen);
@@ -532,7 +531,7 @@ OQS_STATUS dilithium_3_selftest(const char *req_filename, const char *rsp_filena
             fprintf(fp_rsp, "seed = %s", line + 7);
 
             srand(*(unsigned int *)seed);
-            OQS_randombytes_custom_algorithm(kat_randombytes);
+            OQS_randombytes_custom_algorithm(ISCrandombytes);
 
         } else if (sscanf(line, "mlen = %zu", &mlen) == 1) {
             fprintf(fp_rsp, "mlen = %zu\n", mlen);
@@ -608,7 +607,7 @@ OQS_STATUS dilithium_5_selftest(const char *req_filename, const char *rsp_filena
             fprintf(fp_rsp, "seed = %s", line + 7);
 
             srand(*(unsigned int *)seed);
-            OQS_randombytes_custom_algorithm(kat_randombytes);
+            OQS_randombytes_custom_algorithm(ISCrandombytes);
 
         } else if (sscanf(line, "mlen = %zu", &mlen) == 1) {
             fprintf(fp_rsp, "mlen = %zu\n", mlen);
@@ -1252,7 +1251,11 @@ OQS_STATUS shake_128_mct_selftest(const char *req_filename, const char *rsp_file
     while (fgets(line, sizeof(line), req_file)) {
         fputs(line, rsp_file);
         if (strncmp(line, "COUNT =", 7) == 0) {
-            fgets(line, sizeof(line), req_file);
+            if (fgets(line, sizeof(line), req_file) == NULL) {
+                perror("Failed to read line from request file");
+                fclose(req_file);
+                return OQS_ERROR;
+            }
             sscanf(line, "len = %zu", &msg_len);
             if (msg_len < 104 || msg_len > 1496) {
                 fprintf(stderr, "Invalid message length: %zu\n", msg_len);
@@ -1260,7 +1263,11 @@ OQS_STATUS shake_128_mct_selftest(const char *req_filename, const char *rsp_file
                 fclose(rsp_file);
                 return OQS_ERROR;
             }
-            fgets(line, sizeof(line), req_file);
+            if (fgets(line, sizeof(line), req_file) == NULL) {
+                perror("Failed to read line from request file");
+                fclose(req_file);
+                return OQS_ERROR;
+            }
             
             EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
             if (!mdctx) {
@@ -1460,7 +1467,11 @@ OQS_STATUS shake_256_mct_selftest(const char *req_filename, const char *rsp_file
     while (fgets(line, sizeof(line), req_file)) {
         fputs(line, rsp_file);
         if (strncmp(line, "COUNT =", 7) == 0) {
-            fgets(line, sizeof(line), req_file);
+            if (fgets(line, sizeof(line), req_file) == NULL) {
+                perror("Failed to read line from request file");
+                fclose(req_file);
+                return OQS_ERROR;
+            }
             sscanf(line, "len = %zu", &msg_len);
             if (msg_len < 104 || msg_len > 1496) {
                 fprintf(stderr, "Invalid message length: %zu\n", msg_len);
@@ -1468,7 +1479,11 @@ OQS_STATUS shake_256_mct_selftest(const char *req_filename, const char *rsp_file
                 fclose(rsp_file);
                 return OQS_ERROR;
             }
-            fgets(line, sizeof(line), req_file);
+            if (fgets(line, sizeof(line), req_file) == NULL) {
+                perror("Failed to read line from request file");
+                fclose(req_file);
+                return OQS_ERROR;
+            }
             
             EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
             if (!mdctx) {

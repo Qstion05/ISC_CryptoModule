@@ -80,7 +80,11 @@ OQS_STATUS sign_integrity_file(uint8_t *secret_key, size_t sk_len, uint8_t **sig
     }
 
     uint8_t message[MESSAGE_LEN];
-    fread(message, 1, MESSAGE_LEN, file);
+    if (fread(message, 1, MESSAGE_LEN, file) != MESSAGE_LEN) {
+        perror("Failed to read message from file");
+        fclose(file);
+        return OQS_ERROR;
+    }
     fclose(file);
 
     OQS_SIG *sig = OQS_SIG_new(DILITHIUM_ALG);
@@ -121,7 +125,11 @@ OQS_STATUS verify_integrity(uint8_t *public_key, size_t pk_len, uint8_t *signatu
     }
 
     uint8_t message[MESSAGE_LEN];
-    fread(message, 1, MESSAGE_LEN, file);
+    if (fread(message, 1, MESSAGE_LEN, file) != MESSAGE_LEN) {
+        perror("Failed to read message from file");
+        fclose(file);
+        return OQS_ERROR;
+    }
     fclose(file);
 
     OQS_SIG *sig = OQS_SIG_new(DILITHIUM_ALG);

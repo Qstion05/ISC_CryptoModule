@@ -2,7 +2,7 @@
 #include <oqs/oqs.h>
 
 #include "oqs_dilithium_test.h"
-
+#include "../Source/common.h"
 // Cleanup utility
 void cleanup_dilithium_stack(uint8_t *secret_key, size_t secret_key_len) {
     OQS_MEM_cleanse(secret_key, secret_key_len);

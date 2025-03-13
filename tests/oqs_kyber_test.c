@@ -2,7 +2,7 @@
 #include <string.h>
 #include <oqs/oqs.h>
 #include "oqs_kyber_test.h"
-
+#include "../Source/common.h"
 
 OQS_STATUS OQS_Kyber_keygen(uint8_t *public_key, uint8_t *secret_key){
     OQS_STATUS rc = OQS_KEM_kyber_768_keypair(public_key, secret_key);
