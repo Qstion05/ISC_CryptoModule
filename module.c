@@ -9,7 +9,23 @@
 #include "Source/SelfTest.h"
 #include "module.h"
 
+
 int errorCode;
+// 상태 정의
+typedef enum {
+    POWER_ON,            // 전원 켜짐
+    INITIALIZATION,      // 초기화
+    INTEGRITY_CHECK,     // 무결성 검사
+    SELF_TEST,           // 자가시험
+    OPERATIONAL_MODE,    // 동작모드(정상동작 상태)
+    ERROR_STATE          // 에러 발생
+} State;
+#define MESSAGE_LEN 50
+
+
+
+
+// 현재 상태를 저장하는 변수
 State current_state = POWER_ON;
 
 // 상태 전이 함수들
