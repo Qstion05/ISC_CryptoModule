@@ -3,14 +3,29 @@
 #include <string.h>
 #include <openssl/evp.h>
 #include <oqs/oqs.h>
+#include "../module.h"
 #include "../Source/common.h"
 #define MESSAGE_LEN 50
 
 // SHA3-256 테스트
 OQS_STATUS ISC_SHA3_256_test() {
-    uint8_t message[MESSAGE_LEN] = {0};
+    uint8_t message[MESSAGE_LEN];
     uint8_t hash[32];
+    int choice;
+    DEBUG_PRINT(" ===== SHA3-256 ===== ");
+    ISCrandombytes(message, MESSAGE_LEN);
 
+    DEBUG_PRINT(" 랜덤한 메세지를 생성했습니다. 변경하시겠습니까?(1. 변경한다. 2. 변경하지 않는다)");
+    scanf("%d", &choice);
+    getchar();
+    if(choice == 1){
+        DEBUG_PRINT("변경을 선택하셨습니다.");
+        DEBUG_PRINT("변경할 Msg값을 입력해주세요(50byte 이내)");
+        if(DEBUG_HEXIN(message, 1) == false){
+            DEBUG_PRINT("입력값에 오류가 발생했습니다. 변경하지 않습니다.");
+        }
+        DEBUG_HEX("변경 후 msg ", message, MESSAGE_LEN);
+    } 
     EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     if (!mdctx) {
         perror("EVP_MD_CTX_new failed");
@@ -37,8 +52,10 @@ OQS_STATUS ISC_SHA3_256_test() {
 
 // SHA3-512 테스트
 OQS_STATUS ISC_SHA3_512_test() {
-    uint8_t message[MESSAGE_LEN] = {0};
+    DEBUG_PRINT(" ===== SHA3-512 ===== ");
+    uint8_t message[MESSAGE_LEN];
     uint8_t hash[64];
+    ISCrandombytes(message, MESSAGE_LEN);
 
     EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     if (!mdctx) {
@@ -66,7 +83,7 @@ OQS_STATUS ISC_SHA3_512_test() {
 
 // SHAKE-128 테스트
 OQS_STATUS ISC_SHAKE_128_test() {
-    uint8_t message[MESSAGE_LEN] = {0};
+    uint8_t message[MESSAGE_LEN];
     uint8_t hash[32];
 
     EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
@@ -95,9 +112,9 @@ OQS_STATUS ISC_SHAKE_128_test() {
 
 // SHAKE-256 테스트
 OQS_STATUS ISC_SHAKE_256_test() {
-    uint8_t message[MESSAGE_LEN] = {0};
+    uint8_t message[MESSAGE_LEN];
     uint8_t hash[64];
-
+    ISCrandombytes(message, MESSAGE_LEN);
     EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     if (!mdctx) {
         perror("EVP_MD_CTX_new failed");

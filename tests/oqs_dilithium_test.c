@@ -3,6 +3,7 @@
 
 #include "oqs_dilithium_test.h"
 #include "../Source/common.h"
+#include "../module.h"
 // Cleanup utility
 void cleanup_dilithium_stack(uint8_t *secret_key, size_t secret_key_len) {
     OQS_MEM_cleanse(secret_key, secret_key_len);
@@ -44,6 +45,8 @@ OQS_STATUS OQS_dilithium_All_test(){
 
 // Dilithium-2 테스트 함수
 OQS_STATUS OQS_dilithium_2_test() {
+    int choice;
+    DEBUG_PRINT("=== Dilithium-2 ===");
     OQS_STATUS rc;
     uint8_t public_key[OQS_SIG_dilithium_2_length_public_key];
     uint8_t secret_key[OQS_SIG_dilithium_2_length_secret_key];
@@ -53,41 +56,63 @@ OQS_STATUS OQS_dilithium_2_test() {
     size_t signature_len;
 
     OQS_randombytes(message, message_len);
-
+    DEBUG_PRINT(" ===== Dilithium-2 Keypair ===== \n");
     rc = OQS_SIG_dilithium_2_keypair(public_key, secret_key);
     if (rc != OQS_SUCCESS) {
         fprintf(stderr, "ERROR: OQS_SIG_dilithium_2_keypair failed!\n");
         cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_2_length_secret_key);
         return OQS_ERROR;
     }
+    DEBUG_PRINT("PK, SK가 생성되었습니다. 값을 변경하시겠습니까?(1. 변경한다. 2. 변경하지 않는다)");
+    scanf("%d", &choice);
+    getchar();
+    if(choice == 1){
+        DEBUG_PRINT("변수 변경을 선택하셨습니다.");
+        DEBUG_PRINT("이후 정상적인 작동이 되지 않을 수 있습니다.");
+        DEBUG_PRINT("변경할 Pk값을 입력해주세요");
+        if(DEBUG_HEXIN(public_key, OQS_SIG_dilithium_2_length_public_key) == false){
+            DEBUG_PRINT("입력값에 오류가 발생했습니다. 변경하지 않습니다.");
+        }
+        DEBUG_PRINT("변경할 Sk값을 입력해주세요");
+        if(DEBUG_HEXIN(secret_key, OQS_SIG_dilithium_2_length_secret_key) == false){
+           DEBUG_PRINT("입력값에 오류가 발생했습니다. 변경하지 않습니다."); 
+        }
+        DEBUG_HEX("변경 후 pk ", public_key, OQS_SIG_dilithium_2_length_public_key);
+        DEBUG_HEX("변경 후 sk ", secret_key, OQS_SIG_dilithium_2_length_secret_key);
+    }
 
+    DEBUG_PRINT(" ===== Dilithium_2 Signature ===== \n");
     rc = OQS_SIG_dilithium_2_sign(signature, &signature_len, message, message_len, secret_key);
     if (rc != OQS_SUCCESS) {
         fprintf(stderr, "ERROR: OQS_SIG_dilithium_2_sign failed!\n");
         cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_2_length_secret_key);
         return OQS_ERROR;
     }
+    
+    DEBUG_HEX("Signature: ", signature, OQS_SIG_dilithium_2_length_signature);
+    DEBUG_HEX("Message: ", message, message_len);
 
+    DEBUG_PRINT(" ===== Dilithium_2 Verify ===== \n");
     rc = OQS_SIG_dilithium_2_verify(message, message_len, signature, signature_len, public_key);
     if (rc != OQS_SUCCESS) {
         fprintf(stderr, "ERROR: OQS_SIG_dilithium_2_verify failed!\n");
         cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_2_length_secret_key);
         return OQS_ERROR;
     }
+    
+    DEBUG_HEX("Signature: ", signature, OQS_SIG_dilithium_2_length_signature);
+    DEBUG_HEX("Message: ", message, message_len);
 
     printf("[ISC_Dilithium_2] dilithium-2 operations completed successfully.\n");
     cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_2_length_secret_key);
     return OQS_SUCCESS;
-
-    printf("[ISC_Dilithium_2] dilithium-2 was not enabled at compile-time.\n");
-    cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_2_length_secret_key);
-    return OQS_ERROR;
 }
 
-// Dilithium-3 테스트 함수
+// Dilithium-2 테스트 함수
 OQS_STATUS OQS_dilithium_3_test() {
+    int choice;
+    DEBUG_PRINT("=== Dilithium-3 ===");
     OQS_STATUS rc;
-
     uint8_t public_key[OQS_SIG_dilithium_3_length_public_key];
     uint8_t secret_key[OQS_SIG_dilithium_3_length_secret_key];
     uint8_t message[MESSAGE_LEN];
@@ -96,20 +121,40 @@ OQS_STATUS OQS_dilithium_3_test() {
     size_t signature_len;
 
     OQS_randombytes(message, message_len);
-
+    DEBUG_PRINT(" ===== Dilithium-3 Keypair ===== \n");
     rc = OQS_SIG_dilithium_3_keypair(public_key, secret_key);
     if (rc != OQS_SUCCESS) {
         fprintf(stderr, "ERROR: OQS_SIG_dilithium_3_keypair failed!\n");
         cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_3_length_secret_key);
         return OQS_ERROR;
     }
-
+    DEBUG_PRINT("PK, SK가 생성되었습니다. 값을 변경하시겠습니까?(1. 변경한다. 2. 변경하지 않는다)");
+    scanf("%d", &choice);
+    getchar();
+    if(choice == 1){
+        DEBUG_PRINT("변수 변경을 선택하셨습니다.");
+        DEBUG_PRINT("이후 정상적인 작동이 되지 않을 수 있습니다.");
+        DEBUG_PRINT("변경할 Pk값을 입력해주세요");
+        if(DEBUG_HEXIN(public_key, OQS_SIG_dilithium_3_length_public_key) == false){
+            DEBUG_PRINT("입력값에 오류가 발생했습니다. 변경하지 않습니다.");
+        }
+        DEBUG_PRINT("변경할 Sk값을 입력해주세요");
+        if(DEBUG_HEXIN(secret_key, OQS_SIG_dilithium_3_length_secret_key) == false){
+           DEBUG_PRINT("입력값에 오류가 발생했습니다. 변경하지 않습니다."); 
+        }
+        DEBUG_HEX("변경 후 pk ", public_key, OQS_SIG_dilithium_3_length_public_key);
+        DEBUG_HEX("변경 후 sk ", secret_key, OQS_SIG_dilithium_3_length_secret_key);
+    }
+    DEBUG_PRINT(" ===== Dilithium_3 Signature ===== \n");
     rc = OQS_SIG_dilithium_3_sign(signature, &signature_len, message, message_len, secret_key);
     if (rc != OQS_SUCCESS) {
-        fprintf(stderr, "ERROR: OQS_SIG_dilithium_3n failed!\n");
+        fprintf(stderr, "ERROR: OQS_SIG_dilithium_3_sign failed!\n");
         cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_3_length_secret_key);
         return OQS_ERROR;
     }
+   
+    DEBUG_HEX("Signature: ", signature, OQS_SIG_dilithium_3_length_signature);
+    DEBUG_HEX("Message: ", message, message_len);
 
     rc = OQS_SIG_dilithium_3_verify(message, message_len, signature, signature_len, public_key);
     if (rc != OQS_SUCCESS) {
@@ -117,20 +162,21 @@ OQS_STATUS OQS_dilithium_3_test() {
         cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_3_length_secret_key);
         return OQS_ERROR;
     }
+    DEBUG_PRINT(" ===== Dilithium_3 Verify ===== \n");
+    DEBUG_HEX("Signature: ", signature, OQS_SIG_dilithium_3_length_signature);
+    DEBUG_HEX("Message: ", message, message_len);
 
-    printf("[ISC_Dilithium_3] dilithium-3 operations completed successfully.\n");
+    printf("[ISC_Dilithium_3] dilithium-2 operations completed successfully.\n");
     cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_3_length_secret_key);
     return OQS_SUCCESS;
 
-    printf("[ISC_Dilithium_3] dilithium-3 was not enabled at compile-time.\n");
-    cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_3_length_secret_key);
-    return OQS_ERROR;
 }
 
-// Dilithium-5 테스트 함수
-OQS_STATUS OQS_dilithium_5_test() {
-    OQS_STATUS rc;
 
+OQS_STATUS OQS_dilithium_5_test() {
+    int choice;
+    DEBUG_PRINT("=== Dilithium-5 ===");
+    OQS_STATUS rc;
     uint8_t public_key[OQS_SIG_dilithium_5_length_public_key];
     uint8_t secret_key[OQS_SIG_dilithium_5_length_secret_key];
     uint8_t message[MESSAGE_LEN];
@@ -139,33 +185,54 @@ OQS_STATUS OQS_dilithium_5_test() {
     size_t signature_len;
 
     OQS_randombytes(message, message_len);
-
+    DEBUG_PRINT(" ===== Dilithium-5 Keypair ===== \n");
     rc = OQS_SIG_dilithium_5_keypair(public_key, secret_key);
     if (rc != OQS_SUCCESS) {
         fprintf(stderr, "ERROR: OQS_SIG_dilithium_5_keypair failed!\n");
         cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_5_length_secret_key);
         return OQS_ERROR;
     }
-
+    DEBUG_PRINT("PK, SK가 생성되었습니다. 값을 변경하시겠습니까?(1. 변경한다. 2. 변경하지 않는다)");
+    scanf("%d", &choice);
+    getchar();
+    if(choice == 1){
+        DEBUG_PRINT("변수 변경을 선택하셨습니다.");
+        DEBUG_PRINT("이후 정상적인 작동이 되지 않을 수 있습니다.");
+        DEBUG_PRINT("변경할 Pk값을 입력해주세요");
+        if(DEBUG_HEXIN(public_key, OQS_SIG_dilithium_5_length_public_key) == false){
+            DEBUG_PRINT("입력값에 오류가 발생했습니다. 변경하지 않습니다.");
+        }
+        DEBUG_PRINT("변경할 Sk값을 입력해주세요");
+        if(DEBUG_HEXIN(secret_key, OQS_SIG_dilithium_5_length_secret_key) == false){
+           DEBUG_PRINT("입력값에 오류가 발생했습니다. 변경하지 않습니다."); 
+        }
+        DEBUG_HEX("변경 후 pk ", public_key, OQS_SIG_dilithium_5_length_public_key);
+        DEBUG_HEX("변경 후 sk ", secret_key, OQS_SIG_dilithium_5_length_secret_key);
+    }
+    DEBUG_PRINT(" ===== Dilithium_5 Signature ===== \n");
     rc = OQS_SIG_dilithium_5_sign(signature, &signature_len, message, message_len, secret_key);
     if (rc != OQS_SUCCESS) {
-        fprintf(stderr, "ERROR: OQS_SIG_dilithium_5n failed!\n");
+        fprintf(stderr, "ERROR: OQS_SIG_dilithium_5_sign failed!\n");
         cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_5_length_secret_key);
         return OQS_ERROR;
     }
+    
+    DEBUG_HEX("Signature: ", signature, OQS_SIG_dilithium_5_length_signature);
+    DEBUG_HEX("Message: ", message, message_len);
 
+    DEBUG_PRINT(" ===== Dilithium_5 Verify ===== \n");
     rc = OQS_SIG_dilithium_5_verify(message, message_len, signature, signature_len, public_key);
     if (rc != OQS_SUCCESS) {
         fprintf(stderr, "ERROR: OQS_SIG_dilithium_5_verify failed!\n");
         cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_5_length_secret_key);
         return OQS_ERROR;
     }
+    
+    DEBUG_HEX("Signature: ", signature, OQS_SIG_dilithium_5_length_signature);
+    DEBUG_HEX("Message: ", message, message_len);
 
-    printf("[ISC_Dilithium_5] dilithium-5 operations completed successfully.\n");
+    printf("[ISC_Dilithium_5] dilithium-2 operations completed successfully.\n");
     cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_5_length_secret_key);
     return OQS_SUCCESS;
 
-    printf("[ISC_Dilithium_5] dilithium-5 was not enabled at compile-time.\n");
-    cleanup_dilithium_stack(secret_key, OQS_SIG_dilithium_5_length_secret_key);
-    return OQS_ERROR;
 }
