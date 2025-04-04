@@ -5,31 +5,33 @@
 #include <unistd.h>
 #include <oqs/oqs.h>
 #include <ctype.h>
+#include <sys/random.h>
+#include <errno.h>
 #include "../module.h" 
-
 typedef struct{
     int errorCode; //에러코드 값 
     OQS_STATUS OQS_Return; //OQS_SUCCESS / OQS_ERROR
 }rv;
 
 
+
 void ISCrandombytes(uint8_t *random_array, size_t bytes_to_read) {
-    int fd = open("/dev/urandom", O_RDONLY);  // /dev/urandom 파일 열기
-    if (fd < 0) {
-        // 에러 발생 시 기본적인 Fallback (보안 강도 낮음)
-        for (size_t i = 0; i < bytes_to_read; i++) {
-            random_array[i] = (uint8_t)(rand() % 256);
-        }
-    } else {
-        ssize_t bytes_read = read(fd, random_array, bytes_to_read);  // /dev/urandom에서 읽기
-        if (bytes_read < 0) {  // 읽기 실패 시
-        // Fallback: rand() 사용 (비권장, 보안 취약점 가능)
-            for (size_t i = 0; i < bytes_to_read; i++) {
-                random_array[i] = (uint8_t)(rand() % 256);
-            }
-        }
+    ssize_t result = getrandom(random_array, bytes_to_read, 0);
     
-    close(fd);  // 파일 닫기
+    if (result < 0) {
+        // Fallback: /dev/urandom 사용 
+        int fd = open("/dev/urandom", O_RDONLY);
+        if (fd >= 0) {
+            size_t offset = 0;
+            while (offset < bytes_to_read) {
+                ssize_t read_bytes = read(fd, random_array + offset, bytes_to_read - offset);
+                if (read_bytes <= 0) {
+                    break;  // 실패 시 그대로 종료
+                }
+                offset += read_bytes;
+            }
+            close(fd);
+        }
     }
 }
 
@@ -45,6 +47,7 @@ void DEBUG_HEX(const char *label, const uint8_t *data, size_t len) {
 }
 
 bool DEBUG_HEXIN(uint8_t *buffer, size_t length) {
+    if (!DEBUG_MODE) return false; 
     char input[2 * length + 2];  // 개행 포함 고려
     memset(input, 0, sizeof(input));
 

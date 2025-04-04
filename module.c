@@ -34,52 +34,58 @@ State ISC_Initialization() {
     printf("\nState: INITIALIZATION\n");
     DEBUG_PRINT("초기화 시작");
 
+    // 라이브러리 초기화
     OQS_init();
+    // 키 길이 정의
+    size_t pk_len = OQS_SIG_dilithium_3_length_public_key;
+    size_t sk_len = OQS_SIG_dilithium_3_length_secret_key;
 
-    // 메모리 초기화
-    uint8_t *public_key = NULL, *secret_key = NULL;
-    size_t pk_len = 0, sk_len = 0;
+    uint8_t *public_key = malloc(pk_len);
+    uint8_t *secret_key = malloc(sk_len);
 
-    uint8_t *kyber_public_key = NULL, *kyber_secret_key = NULL;
-    uint8_t *kyber_ciphertext = NULL, *kyber_shared_secret = NULL;
+    uint8_t *kyber_public_key = malloc(OQS_KEM_kyber_768_length_public_key);
+    uint8_t *kyber_secret_key = malloc(OQS_KEM_kyber_768_length_secret_key);
+    uint8_t *kyber_ciphertext = malloc(OQS_KEM_kyber_768_length_ciphertext);
+    uint8_t *kyber_shared_secret = malloc(OQS_KEM_kyber_768_length_shared_secret);
 
     uint8_t sha3_hash[32] = {0};
 
-    DEBUG_PRINT("메모리 정리 시작");
-
-    if (public_key) OQS_MEM_cleanse(public_key, pk_len);
-    if (secret_key) OQS_MEM_cleanse(secret_key, sk_len);
-
-    if (kyber_public_key) OQS_MEM_cleanse(kyber_public_key, OQS_KEM_kyber_768_length_public_key);
-    if (kyber_secret_key) OQS_MEM_cleanse(kyber_secret_key, OQS_KEM_kyber_768_length_secret_key);
-    if (kyber_ciphertext) OQS_MEM_cleanse(kyber_ciphertext, OQS_KEM_kyber_768_length_ciphertext);
-    if (kyber_shared_secret) OQS_MEM_cleanse(kyber_shared_secret, OQS_KEM_kyber_768_length_shared_secret);
-
-    // 메모리 할당
-    public_key = malloc(OQS_SIG_dilithium_3_length_public_key);
-    secret_key = malloc(OQS_SIG_dilithium_3_length_secret_key);
-    kyber_public_key = malloc(OQS_KEM_kyber_768_length_public_key);
-    kyber_secret_key = malloc(OQS_KEM_kyber_768_length_secret_key);
-    kyber_ciphertext = malloc(OQS_KEM_kyber_768_length_ciphertext);
-    kyber_shared_secret = malloc(OQS_KEM_kyber_768_length_shared_secret);
-
-    if (!public_key || !secret_key || !kyber_public_key || !kyber_secret_key || !kyber_ciphertext || !kyber_shared_secret) {
+    if (!public_key || !secret_key || !kyber_public_key || !kyber_secret_key ||
+        !kyber_ciphertext || !kyber_shared_secret) {
         fprintf(stderr, "Memory allocation failed during initialization.\n");
+
+        if (!public_key) fprintf(stderr,"[!] public_key 할당 실패\n");
+        if (!secret_key) fprintf(stderr,"[!] secret_key 할당 실패\n");
+        if (!kyber_public_key) fprintf(stderr,"[!] kyber_public_key 할당 실패\n");
+        if (!kyber_secret_key) fprintf(stderr,"[!] kyber_secret_key 할당 실패\n");
+        if (!kyber_ciphertext) fprintf(stderr,"[!] kyber_ciphertext 할당 실패\n");
+        if (!kyber_shared_secret) fprintf(stderr,"[!] kyber_shared_secret 할당 실패\n");
+
+        // 정리
+        if (public_key) OQS_MEM_cleanse(public_key, pk_len), free(public_key);
+        if (secret_key) OQS_MEM_cleanse(secret_key, sk_len), free(secret_key);
+        if (kyber_public_key) OQS_MEM_cleanse(kyber_public_key, OQS_KEM_kyber_768_length_public_key), free(kyber_public_key);
+        if (kyber_secret_key) OQS_MEM_cleanse(kyber_secret_key, OQS_KEM_kyber_768_length_secret_key), free(kyber_secret_key);
+        if (kyber_ciphertext) OQS_MEM_cleanse(kyber_ciphertext, OQS_KEM_kyber_768_length_ciphertext), free(kyber_ciphertext);
+        if (kyber_shared_secret) OQS_MEM_cleanse(kyber_shared_secret, OQS_KEM_kyber_768_length_shared_secret), free(kyber_shared_secret);
+
         return ERROR_STATE;
     }
 
     DEBUG_PRINT("메모리 할당 완료");
+    // 실제 사용은 여기서 수행 (키 생성 등)
 
-    memset(public_key, 0, OQS_SIG_dilithium_3_length_public_key);
-    memset(secret_key, 0, OQS_SIG_dilithium_3_length_secret_key);
-    memset(kyber_public_key, 0, OQS_KEM_kyber_768_length_public_key);
-    memset(kyber_secret_key, 0, OQS_KEM_kyber_768_length_secret_key);
-    memset(kyber_ciphertext, 0, OQS_KEM_kyber_768_length_ciphertext);
-    memset(kyber_shared_secret, 0, OQS_KEM_kyber_768_length_shared_secret);
-    memset(sha3_hash, 0, sizeof(sha3_hash));
+    // 정리: 보안 메모리 삭제
+    OQS_MEM_cleanse(public_key, pk_len); free(public_key);
+    OQS_MEM_cleanse(secret_key, sk_len); free(secret_key);
+    OQS_MEM_cleanse(kyber_public_key, OQS_KEM_kyber_768_length_public_key); free(kyber_public_key);
+    OQS_MEM_cleanse(kyber_secret_key, OQS_KEM_kyber_768_length_secret_key); free(kyber_secret_key);
+    OQS_MEM_cleanse(kyber_ciphertext, OQS_KEM_kyber_768_length_ciphertext); free(kyber_ciphertext);
+    OQS_MEM_cleanse(kyber_shared_secret, OQS_KEM_kyber_768_length_shared_secret); free(kyber_shared_secret);
 
     DEBUG_PRINT("초기화 완료");
     printf("Memory initialization complete.\n");
+
     return current_state = INTEGRITY_CHECK;
 }
 
@@ -137,10 +143,10 @@ State ISC_Operation() {
 
     switch (input) {
         case 1:
-            return (OQS_Kyber_All_test() == OQS_SUCCESS &&
-                    OQS_dilithium_All_test() == OQS_SUCCESS &&
-                    ISC_SHA3_All_test() == OQS_SUCCESS &&
-                    ISC_SHAKE_All_test() == OQS_SUCCESS)
+            return (ISC_Kyber_All() == OQS_SUCCESS &&
+                    ISC_Dilithium_All() == OQS_SUCCESS &&
+                    ISC_SHA3_All() == OQS_SUCCESS &&
+                    ISC_SHAKE_All() == OQS_SUCCESS)
                    ? OPERATIONAL_MODE : ERROR_STATE;
         case 2:
             return ISC_kyber_select() == OQS_SUCCESS ? OPERATIONAL_MODE : ERROR_STATE;
@@ -162,7 +168,7 @@ State ISC_Error() {
     return INITIALIZATION;
 }
 
-State run_fsm(){
+State run_test(){
     while (1) {
         switch (current_state) {
             case POWER_ON:
@@ -195,6 +201,6 @@ int main(int argc, char *argv[]) {
         DEBUG_MODE = true;
         printf("디버그 모드 활성화됨\n");
     }
-    run_fsm();
+    run_test();
     return 0;
 }
