@@ -43,6 +43,33 @@ OQS_STATUS ISC_Dilithium_All(){
     return OQS_SUCCESS;
 }
 
+OQS_STATUS ISC_Dilithium_2_Keypair(uint8_t *public_key, uint8_t* secret_key){
+  rc = OQS_SIG_dilithium_2_keypair(public_key, secret_key);
+    if (rc != OQS_SUCCESS) {
+        fprintf(stderr, "ERROR: OQS_SIG_dilithium_2_keypair failed!\n");
+        ISC_Dilithium_Cleanup(secret_key, OQS_SIG_dilithium_2_length_secret_key);
+        return OQS_ERROR;
+    }
+
+OQS_STATUS ISC_Dilithium_2_sign(uint8_t *ciphertext, uint8_t *shared_secret_e, uint8_t *public_key){
+    rc = OQS_SIG_dilithium_2_sign(signature, &signature_len, message, message_len, secret_key);
+    if (rc != OQS_SUCCESS) {
+        fprintf(stderr, "ERROR: OQS_SIG_dilithium_2_sign failed!\n");
+        ISC_Dilithium_Cleanup(secret_key, OQS_SIG_dilithium_2_length_secret_key);
+        return OQS_ERROR;
+    }
+}
+
+OQS_STATUS ISC_Dilithium_2_verify(uint8_t *ciphertext, uint8_t *shared_secret_e, uint8_t *public_key){
+    rc = OQS_SIG_dilithium_2_verify(message, message_len, signature, signature_len, public_key);
+    if (rc != OQS_SUCCESS) {
+        fprintf(stderr, "ERROR: OQS_SIG_dilithium_2_verify failed!\n");
+        ISC_Dilithium_Cleanup(secret_key, OQS_SIG_dilithium_2_length_secret_key);
+        return OQS_ERROR;
+    }
+}
+
+
 // Dilithium-2 테스트 함수
 OQS_STATUS ISC_Dilithium_2() {
     int choice;
