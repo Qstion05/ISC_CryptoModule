@@ -7,6 +7,7 @@
 #include <oqs/oqs.h>
 #include <openssl/evp.h>
 #include "common.h"
+#include "../module.h"  // DEBUG_MODE, DEBUG_PRINT 접근
 
 #define SEED_SIZE 48
 #define MAX_MESSAGE_LEN 10000

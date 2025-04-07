@@ -3,20 +3,23 @@
 #include <string.h>
 #include <openssl/evp.h>
 #include <oqs/oqs.h>
+#include "../module.h"
 #include "../Source/common.h"
 #define MESSAGE_LEN 50
 
 // SHA3-256 테스트
-OQS_STATUS ISC_SHA3_256_test() {
-    uint8_t message[MESSAGE_LEN] = {0};
+OQS_STATUS ISC_SHA3_256() {
+    uint8_t message[MESSAGE_LEN];
     uint8_t hash[32];
-
+    DEBUG_PRINT(" ===== SHA3-256 ===== ");
+    ISCrandombytes(message, MESSAGE_LEN);
+    DEBUG_HEX("message: ", message, MESSAGE_LEN);
     EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     if (!mdctx) {
         perror("EVP_MD_CTX_new failed");
         return OQS_ERROR;
     }
-
+ 
     if (EVP_DigestInit_ex(mdctx, EVP_sha3_256(), NULL) != 1 ||
         EVP_DigestUpdate(mdctx, message, MESSAGE_LEN) != 1 ||
         EVP_DigestFinal_ex(mdctx, hash, NULL) != 1) {
@@ -36,10 +39,12 @@ OQS_STATUS ISC_SHA3_256_test() {
 }
 
 // SHA3-512 테스트
-OQS_STATUS ISC_SHA3_512_test() {
-    uint8_t message[MESSAGE_LEN] = {0};
+OQS_STATUS ISC_SHA3_512() {
+    DEBUG_PRINT(" ===== SHA3-512 ===== ");
+    uint8_t message[MESSAGE_LEN];
     uint8_t hash[64];
-
+    ISCrandombytes(message, MESSAGE_LEN);
+    DEBUG_HEX("message: ", message, MESSAGE_LEN);
     EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     if (!mdctx) {
         perror("EVP_MD_CTX_new failed");
@@ -65,10 +70,11 @@ OQS_STATUS ISC_SHA3_512_test() {
 }
 
 // SHAKE-128 테스트
-OQS_STATUS ISC_SHAKE_128_test() {
-    uint8_t message[MESSAGE_LEN] = {0};
+OQS_STATUS ISC_SHAKE_128() {
+    uint8_t message[MESSAGE_LEN];
     uint8_t hash[32];
-
+    ISCrandombytes(message, MESSAGE_LEN);
+    DEBUG_HEX("message: ", message, MESSAGE_LEN);
     EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     if (!mdctx) {
         perror("EVP_MD_CTX_new failed");
@@ -94,10 +100,10 @@ OQS_STATUS ISC_SHAKE_128_test() {
 }
 
 // SHAKE-256 테스트
-OQS_STATUS ISC_SHAKE_256_test() {
-    uint8_t message[MESSAGE_LEN] = {0};
+OQS_STATUS ISC_SHAKE_256() {
+    uint8_t message[MESSAGE_LEN];
     uint8_t hash[64];
-
+    ISCrandombytes(message, MESSAGE_LEN);
     EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     if (!mdctx) {
         perror("EVP_MD_CTX_new failed");
@@ -122,18 +128,18 @@ OQS_STATUS ISC_SHAKE_256_test() {
     return OQS_SUCCESS;
 }
 
-OQS_STATUS ISC_SHA3_All_test() {
-    if (ISC_SHA3_256_test() == OQS_ERROR)
+OQS_STATUS ISC_SHA3_All() {
+    if (ISC_SHA3_256() == OQS_ERROR)
         return OQS_ERROR;
-    if (ISC_SHA3_512_test() == OQS_ERROR)
+    if (ISC_SHA3_512() == OQS_ERROR)
         return OQS_ERROR;
     return OQS_SUCCESS;
 }
 
-OQS_STATUS ISC_SHAKE_All_test() {
-    if (ISC_SHAKE_128_test() == OQS_ERROR)
+OQS_STATUS ISC_SHAKE_All() {
+    if (ISC_SHAKE_128() == OQS_ERROR)
         return OQS_ERROR;
-    if (ISC_SHAKE_256_test() == OQS_ERROR)
+    if (ISC_SHAKE_256() == OQS_ERROR)
         return OQS_ERROR;
     return OQS_SUCCESS;
 }
@@ -152,11 +158,11 @@ OQS_STATUS SHA3_select() {
 
     switch (choice) {
         case 1:
-            return ISC_SHA3_All_test();
+            return ISC_SHA3_All();
         case 2:
-            return ISC_SHA3_256_test();
+            return ISC_SHA3_256();
         case 3:
-            return ISC_SHA3_512_test();
+            return ISC_SHA3_512();
         default:
             printf("Invalid choice. Please enter 1 or 2.\n");
             return OQS_ERROR;
@@ -175,11 +181,11 @@ OQS_STATUS SHAKE_select() {
 
     switch (choice) {
         case 1:
-            return ISC_SHAKE_All_test();
+            return ISC_SHAKE_All();
         case 2:
-            return ISC_SHAKE_128_test();
+            return ISC_SHAKE_128();
         case 3:
-            return ISC_SHAKE_256_test();
+            return ISC_SHAKE_256();
         default:
             printf("Invalid choice. Please enter 1,2 or 3.\n");
             return OQS_ERROR;
